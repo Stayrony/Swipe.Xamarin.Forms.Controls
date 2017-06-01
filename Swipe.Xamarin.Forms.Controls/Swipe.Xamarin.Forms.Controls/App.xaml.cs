@@ -1,4 +1,5 @@
 ﻿using Xamarin.Forms;
+using Swipe.Xamarin.Forms.Controls.Views;
 
 namespace Swipe.Xamarin.Forms.Controls
 {
@@ -8,7 +9,8 @@ namespace Swipe.Xamarin.Forms.Controls
 		{
 			InitializeComponent();
 
-			MainPage = new Swipe_Xamarin_Forms_ControlsPage();
+			MainPage = new RootView();
+
 		}
 
 		protected override void OnStart()

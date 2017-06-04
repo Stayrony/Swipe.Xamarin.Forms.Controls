@@ -12,6 +12,8 @@ namespace Swipe.Xamarin.Forms.Controls.Controls
 		private GestureViewRecognizer _touchView;
 		private const int _lenghtToClick = 10;
 		private double _movingDistance;
+		private bool _isTouchesBegan = false;
+		private double _startTouchesMovedX;
 		private AbsoluteLayout _absoluteLayout;
 
 		private double _startTouchX;
@@ -178,18 +180,23 @@ namespace Swipe.Xamarin.Forms.Controls.Controls
 			this.Content = _absoluteLayout;
 		}
 
-		private async Task CompleteSwappingAsync(double x)
+		private async Task CompleteSwappingAsync(double offsetX)
 		{
-			if (x > _swipeLeftClickableView.Width / 2)
-				x = _swipeLeftClickableView.Width;
-			else if ((x > 0) && (x < _swipeLeftClickableView.Width / 2))
-				x = 0;
-			else if (x < -_swipeRightClickableView.Width / 2)
-				x = -_swipeRightClickableView.Width;
-			else if ((x < 0) && (x > -_swipeRightClickableView.Width / 2))
-				x = 0;
-			await SwippingView.TranslateTo(x, 0);
-			await _touchView.TranslateTo(x, 0);
+			if (offsetX > _swipeLeftClickableView.Width / 2)
+				offsetX = _swipeLeftClickableView.Width;
+			else if ((offsetX > 0) && (offsetX < _swipeLeftClickableView.Width / 2))
+				offsetX = 0;
+			else if (offsetX < -_swipeRightClickableView.Width / 2)
+				offsetX = -_swipeRightClickableView.Width;
+			else if ((offsetX < 0) && (offsetX > -_swipeRightClickableView.Width / 2))
+				offsetX = 0;
+
+			//HACK work only for iOS, for Android see native Renderer
+			MessagingCenter.Send<SwipeView, bool>(this, "IsScrollListEnabled", false);
+
+			await SwippingView.TranslateTo(offsetX, 0);
+			_touchView.TranslationX = offsetX;
+			MessagingCenter.Send<SwipeView, bool>(this, "IsScrollListEnabled", true);
 		}
 
 		private void _touchHandler_OnTouchesBegan(object sender, IEnumerable<NGraphics.Point> e)
@@ -198,14 +205,23 @@ namespace Swipe.Xamarin.Forms.Controls.Controls
 			_movingDistance = 0;
 			_startTouchX = e.FirstOrDefault().X;
 			_swappingBoxPanGesturePosX = SwippingView.TranslationX;
+			_isTouchesBegan = true;
 		}
 
 		private void _touchHandler_OnTouchesMoved(object sender, IEnumerable<NGraphics.Point> e)
 		{
-			var curPoint = e.FirstOrDefault().X;
+			MessagingCenter.Send<SwipeView, bool>(this, "IsScrollListEnabled", false);
 
-			_offsetX = _swappingBoxPanGesturePosX + curPoint - _startTouchX;
-			_movingDistance += curPoint - _startTouchX;
+			var curPointX = e.FirstOrDefault().X;
+			if (_isTouchesBegan)
+			{
+				_startTouchesMovedX = curPointX;
+				_isTouchesBegan = false;
+			}
+
+			_offsetX = _swappingBoxPanGesturePosX + curPointX - _startTouchesMovedX;
+			_movingDistance += curPointX - _startTouchX;
+
 			if (_offsetX > _swipeLeftClickableView.Width)
 				_offsetX = _swipeLeftClickableView.Width;
 			else if (_offsetX < -_swipeRightClickableView.Width)
@@ -216,8 +232,8 @@ namespace Swipe.Xamarin.Forms.Controls.Controls
 
 		private void _touchHandler_OnTouchesEnded(object sender, IEnumerable<NGraphics.Point> e)
 		{
-			var curPoint = e.FirstOrDefault();
-			_movingDistance += curPoint.X - _startTouchX;
+			var curPointX = e.FirstOrDefault();
+			_movingDistance += curPointX.X - _startTouchX;
 			OnMovingEnded();
 		}
 

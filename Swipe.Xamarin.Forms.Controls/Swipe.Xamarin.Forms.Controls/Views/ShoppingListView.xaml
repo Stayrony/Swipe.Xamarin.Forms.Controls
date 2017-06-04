@@ -3,8 +3,24 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
 	x:Class="Swipe.Xamarin.Forms.Controls.Views.ShoppingListView" 
 	xmlns:views="clr-namespace:Swipe.Xamarin.Forms.Controls.Views;assembly=Swipe.Xamarin.Forms.Controls"
+	xmlns:controls="clr-namespace:Swipe.Xamarin.Forms.Controls.Controls;assembly=Swipe.Xamarin.Forms.Controls" 
+	xmlns:cells="clr-namespace:Swipe.Xamarin.Forms.Controls.Cell;assembly=Swipe.Xamarin.Forms.Controls"
 	Title="Shopping list" 
     Icon="icBuyListInactive">
-	<ContentPage.Content>
-	</ContentPage.Content>
+<Grid>
+ <controls:ControllableScrollListView Grid.Row="0" 
+			x:Name="listView"
+			SeparatorVisibility="None"
+            BackgroundColor="Transparent" 
+            HasUnevenRows="true"
+            ItemsSource="{Binding ShoppingInfoItems}">
+           <ListView.ItemTemplate>
+                <DataTemplate>
+                   <cells:ShoppingInfoCell CommandParameter="{Binding .}" 
+					/>
+<!--					TouchCommand="{Binding MealInfoItemClickedCommand}"-->
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </controls:ControllableScrollListView>
+	</Grid>
 </views:BaseContentPage>
